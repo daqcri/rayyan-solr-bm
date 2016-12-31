@@ -55,6 +55,7 @@ class SolrFacetsBenchmarker
       menu.default = :development
     end
     @search_ids << -1
+    cli_menu_facet_type cli
   end
 
   def cli_menu_websolr_prefer(cli)
@@ -67,42 +68,52 @@ class SolrFacetsBenchmarker
     end
   end
 
+  def cli_menu_facet_type(cli)
+    cli.choose do |menu|
+      menu.prompt = "Choose facet field types: "
+      menu.choices(:global, :replicated) { |c|
+        @facet_type = c
+      }
+    end
+  end
+
   def initialize
     Dotenv.load
     cli_menu_deployment HighLine.new
 
+    dk = ":r#{@review_id}" if @facet_type == :replicated
     @all_facets = {
-      "language_s" => {
-        "f.language_s.facet.mincount" => 1
+      "language#{dk}_s" => {
+        "f.language#{dk}_s.facet.mincount" => 1
       },
-      "publication_types_im" => {
-        "f.publication_types_im.facet.mincount" => 1
+      "publication_types#{dk}_im" => {
+        "f.publication_types#{dk}_im.facet.mincount" => 1
       },
-      "locations_im" => {
-        "f.locations_im.facet.limit" => 30,
-        "f.locations_im.facet.mincount" => 1
+      "locations#{dk}_im" => {
+        "f.locations#{dk}_im.facet.limit" => 30,
+        "f.locations#{dk}_im.facet.mincount" => 1
       },
-      "keyphrases_im" => {
-        "f.keyphrases_im.facet.limit" => 30,
-        "f.keyphrases_im.facet.mincount" => 1
+      "keyphrases#{dk}_im" => {
+        "f.keyphrases#{dk}_im.facet.limit" => 30,
+        "f.keyphrases#{dk}_im.facet.mincount" => 1
       },
-      "journal_i" => {
-        "f.journal_i.facet.limit" => 100,
-        "f.journal_i.facet.mincount" => 1
+      "journal#{dk}_i" => {
+        "f.journal#{dk}_i.facet.limit" => 100,
+        "f.journal#{dk}_i.facet.mincount" => 1
       },
-      "authors_im" => {
-        "f.authors_im.facet.limit" => 100,
-        "f.authors_im.facet.mincount" => 1
+      "authors#{dk}_im" => {
+        "f.authors#{dk}_im.facet.limit" => 100,
+        "f.authors#{dk}_im.facet.mincount" => 1
       },
-      "year_i" => {
-        "f.year_i.facet.limit" => 30,
-        "f.year_i.facet.mincount" => 1
+      "year#{dk}_i" => {
+        "f.year#{dk}_i.facet.limit" => 30,
+        "f.year#{dk}_i.facet.mincount" => 1
       },
-      "abstract_languages_sm" => {
-        "f.abstract_languages_sm.facet.mincount" => 1
+      "abstract_languages#{dk}_sm" => {
+        "f.abstract_languages#{dk}_sm.facet.mincount" => 1
       },
-      "features_im" => {
-        "f.features_im.facet.mincount" => 1
+      "features#{dk}_im" => {
+        "f.features#{dk}_im.facet.mincount" => 1
       },
       "has_public_fulltexts_bs" => {
         "f.has_public_fulltexts_bs.facet.mincount" => 1
@@ -150,7 +161,7 @@ class SolrFacetsBenchmarker
         puts "#{t_min.round(2)}\t#{t_avg.round(2)}\t#{t_max.round(2)}\t#{filtered_facets.join(',')}"
       end
     end
-  end #request
+  end #start
 
   def print_header
     puts "\nmin\tavg\tmax\tfacets"
@@ -172,7 +183,7 @@ class SolrFacetsBenchmarker
         backoff <<= 1
       end
     end
-  end
+  end #request
 
 private
 
